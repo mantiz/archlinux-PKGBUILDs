@@ -1,0 +1,40 @@
+# Maintainer: Christian Hammerl <info@christian-hammerl.de>
+
+_target=arm-linux-gnueabi
+_sysroot=/usr/${_target}
+_pkgname=xz
+pkgname=${_target}-${_pkgname}
+pkgver=5.0.4
+pkgrel=1
+pkgdesc="Library and command line tools for XZ and LZMA compressed files (${_target})"
+arch=('any')
+url='http://tukaani.org/xz/'
+license=('GPL' 'LGPL' 'custom')
+depends=('sh')
+options=('!libtool' '!strip' '!buildflags')
+source=("http://tukaani.org/${_pkgname}/${_pkgname}-${pkgver}.tar.gz"
+        "http://tukaani.org/${_pkgname}/${_pkgname}-${pkgver}.tar.gz.sig")
+md5sums=('df3df690aef18384e1e031be7ec3a964'
+         '6e203465ee9b8f646d85cf84755e2b32')
+
+build() {
+	cd ${srcdir}/${_pkgname}-${pkgver}
+
+	export CC=${_target}-gcc
+	export CXX=${_target}-g++
+	export AR=${_target}-ar
+	export STRIP=${target}-strip
+	./configure --prefix=${_sysroot} \
+		--host=${_target} \
+		--disable-rpath \
+		--enable-werror
+	make
+}
+
+package() {
+	cd ${srcdir}/${_pkgname}-${pkgver}
+	make DESTDIR=${pkgdir} install
+	install -d -m755 ${pkgdir}/${_sysroot}/share/licenses/xz/
+	ln -sf /usr/share/doc/xz/COPYING ${pkgdir}/${_sysroot}/share/licenses/xz/
+	ln -sf /usr/share/licenses/common/GPL2/license.txt ${pkgdir}/${_sysroot}/share/doc/xz/COPYING.GPLv2
+}
